@@ -136,7 +136,10 @@
         live: 'enabled',
 
         // Map the field name with validator rules
-        fields: null
+        fields: null,
+
+        //Allows submit from an external button to the form
+        externalSubmitButtons: null
     };
 
     BootstrapValidator.prototype = {
@@ -169,7 +172,21 @@
                 optionValue,
                 html5AttrName,
                 html5Attrs;
-
+            if (this.options.externalSubmitButtons !== null){
+                this.options.externalSubmitButtons.on('click.bv', function(){
+                    that.$submitButton  = $(this);
+                    // The user just click the submit button
+                    that._submitIfValid = true;
+                    that.$form.submit();
+                }).each(function() {
+                    $('<input/>')
+                        .attr('type', 'hidden')
+                        .attr('data-bv-submit-hidden', '')
+                        .attr('name', $(this).attr('name'))
+                        .val($(this).val())
+                        .appendTo(that.$form);
+                });
+            }
             this.$form
                 // Disable client side validation in HTML 5
                 .attr('novalidate', 'novalidate')
@@ -597,10 +614,16 @@
          */
         disableSubmitButtons: function(disabled) {
             if (!disabled) {
-                this.$form.find(this.options.submitButtons).removeAttr('disabled');
+                if (this.options.externalSubmitButtons !== null)
+                    this.options.externalSubmitButtons.removeAttr('disabled');
+                else
+                    this.$form.find(this.options.submitButtons).removeAttr('disabled');
             } else if (this.options.live != 'disabled') {
                 // Don't disable if the live validating mode is disabled
-                this.$form.find(this.options.submitButtons).attr('disabled', 'disabled');
+                if (this.options.externalSubmitButtons !== null)
+                    this.options.externalSubmitButtons.attr('disabled', 'disabled');
+                else
+                    this.$form.find(this.options.submitButtons).attr('disabled', 'disabled');
             }
 
             return this;
